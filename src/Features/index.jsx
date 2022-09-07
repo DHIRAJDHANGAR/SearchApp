@@ -11,37 +11,39 @@ import {
 const ProductDashboard = () => {
   const [product, setProduct] = useState([]);
   const [search, setSearch] = useState("");
+  const [copyProduct, setCopyProduct] = useState([]);
   const [favList, setFavList] = useState([]);
-  const [isActive, setIsActive] = useState(true);
-
+  //click on input filled show the product list
   const handleInputClick = async () => {
     const productResponse = await getAllProduct();
     setProduct(productResponse);
+    setCopyProduct(productResponse);
   };
-
-  const filteredproduct = useMemo(() => {
-    const filteredResult = product.filter(
+  //handle search bar
+  const handleSearch = (e) => {
+    setSearch(e.target.value);
+    const filteredResult = copyProduct.filter(
       (item) =>
         item.title.toLowerCase().includes(search.toLowerCase()) ||
         item.category.toLowerCase().includes(search.toLowerCase())
     );
-    return filteredResult;
-  }, [search, product]);
-
-  const addToFavList = (data) => {
-    const hasElementInFav = favList.some((val) => val.id === data.id);
-    if (hasElementInFav) {
+    setProduct(filteredResult);
+  };
+  //handle like and unlike button
+  const handleFavData = (item) => {
+    if (item.isActive === true) {
+      item.isActive = false;
+      setProduct([...product, item]);
       return;
     }
-    setFavList((prv) => {
-      return [...prv, data];
-    });
+    if (item.isActive === false) {
+      item.isActive = true;
+      setProduct([...product, item]);
+      return;
+    }
+    item.isActive = true;
+    setProduct([...product, item]);
   };
-  const handleFavData = () => {
-    console.log("LN41", isActive);
-    return isActive === true ? setIsActive(false) : setIsActive(true);
-  };
-  console.log("LN44", isActive);
 
   return (
     <>
@@ -49,28 +51,29 @@ const ProductDashboard = () => {
         <input
           value={search}
           onClick={handleInputClick}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearch}
           placeholder="Search anything..."
         />
       </div>
       <CardContainer>
-        {filteredproduct.map((item) => {
+        {product.map((item) => {
           return (
             //   {/* <Link to={`/details/${item.id}`}>{item.name}</Link> */}
             <Card key={item.id}>
+              <div
+                onClick={() => {
+                  handleFavData(item);
+                }}
+              >
+                {item.isActive === true ? (
+                  <img src="/heart (2).svg" alt="Like" width={40} />
+                ) : (
+                  <img src="/heart (1).svg" alt="Unlike" width={40} />
+                )}
+              </div>
               <CardImage src={item.image}></CardImage>
               <CardTitle>{item.title}</CardTitle>
               <CardCategory>{item.category}</CardCategory>
-              <button
-                onClick={() => {
-                  addToFavList(item);
-                }}
-              >
-                Fav
-              </button>
-              <button value={item} onClick={handleFavData}>
-                LIKE
-              </button>
             </Card>
           );
         })}
